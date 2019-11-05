@@ -16,6 +16,8 @@ Example Definitons
 	<div 
 		data-type = "7segment"
 		data-get-value = "<Device>:<Reading>"
+		data-limits ="[500,700,900,1000]"
+		data-limit-colors ='["yellow","orange","orangered","red"]'
 		class="top-space">
 	</div>
 	<div 

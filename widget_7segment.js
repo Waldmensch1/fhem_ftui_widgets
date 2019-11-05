@@ -1,3 +1,5 @@
+"use strict";
+
 var Modul_7segment = function () {
     var items = [];
 
@@ -35,6 +37,23 @@ var Modul_7segment = function () {
             elem.initData('decimals', '0');
             items[index].decimals = elem.data('decimals');
 
+            elem.initData('limits', '');
+            var limits = (elem.data('limits') != "") ? elem.data('limits') : []
+            items[index].limits = [];
+            limits.forEach(function (item) {
+                items[index].limits.push(parseFloat(item));
+            });
+            elem.initData('limit-colors', '');
+            items[index].limit_colors = (elem.data('limit-colors') != "") ? elem.data('limit-colors') : []
+
+            console.log(items[index].limits);
+            console.log(items[index].limit_colors);
+
+            // if less colors than limits - fill colors with fg color
+            while (items[index].limit_colors.length < items[index].limits.length) {
+                items[index].limit_colors.push(items[index].fgcolor);
+            }
+
             createDigitArray(index);
             items[index].svgobj = createSVG(index, elem);
 
@@ -50,10 +69,29 @@ var Modul_7segment = function () {
             var elem = $(this);
 
             if (elem.matchDeviceReading('get-value', device, reading)) {
-                setNumber(index, elem.getReading('get-value').val)
+                setColor(index, elem.getReading('get-value').val);
+                setNumber(index, elem.getReading('get-value').val);
             }
 
         });
+    }
+
+    function setColor(itm_index, value) {
+        var _value = parseFloat(value);
+        for (var i = items[itm_index].limits.length - 1; i > -1; i--) {
+            if (_value >= items[itm_index].limits[i]) {
+                for (var j = 0; j < items[itm_index].no_digits; j++) {
+                    var g = items[itm_index].svgobj.getElementById("digit" + j);
+                    g.setAttribute("fill", items[itm_index].limit_colors[i]);
+                }
+                return;
+            }
+        }
+        // no matches in limits
+        for (var j = 0; j < items[itm_index].no_digits; j++) {
+            var g = items[itm_index].svgobj.getElementById("digit" + j);
+            g.setAttribute("fill", items[itm_index].fgcolor);
+        }
     }
 
     function setDigit(index, digit, value, justclear) {
@@ -174,7 +212,7 @@ var Modul_7segment = function () {
         }
 
         if ((items[index].decimals == 1 && items[index].no_digits >= 2) || (items[index].decimals == 2 && items[index].no_digits >= 3)) {
-            c = document.createElementNS(xmlns, "circle");
+            var c = document.createElementNS(xmlns, "circle");
             c.setAttributeNS(null, "r", "1");
             c.setAttributeNS(null, "cx", (boxWidth - (items[index].decimals * 11) - 1.9));
             c.setAttributeNS(null, "cy", boxHeight - 1.1);
@@ -191,7 +229,7 @@ var Modul_7segment = function () {
         for (var i = 0; i < items[itm_index].no_digits; i++) {
             var digarray = [];
             number_segments.forEach(function (item) {
-                subitems = [];
+                var subitems = [];
                 item.forEach(function (subitem) {
                     subitems.push(i + subitem);
                 });
