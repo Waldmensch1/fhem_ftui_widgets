@@ -1,39 +1,39 @@
 var Modul_gauge = function () {
 
 	/* parameters
-		<!-- generic parameter -->
-		data-type = "gauge"
-		data-view = "hygrometer|barometer|clock|anemometer"
-		data-size = "300"
-		data-pointer-speed = "20" <!-- as higher as slower -->
-		data-pointer-widths = '["0.0","6"]'
-		data-pointer-lengths = '["370.0","370.0"]'
-		data-pointer-colors = '["#000000","#000000","red"]'
+        <!-- generic parameter -->
+        data-type = "gauge"
+        data-view = "hygrometer|barometer|clock|anemometer"
+        data-size = "300"
+        data-pointer-speed = "20" <!-- as higher as slower -->
+        data-pointer-widths = '["0.0","6"]'
+        data-pointer-lengths = '["370.0","370.0"]'
+        data-pointer-colors = '["#000000","#000000","red"]'
         data-color-outerborder = "#000000"
         data-color-innerborder = "#000000"
         data-color-background = "#000000"
         data-color-scale = "#000000"
-		data-color-pointer = "#000000"
+        data-color-pointer = "#000000"
 
-		<!-- hygrometer parameter -->
+        <!-- hygrometer parameter -->
         data-get-temperature = "<Device>:<Reading>"
         data-get-humidity = "<Device>:<Reading>"
-		data-show-devpoint = "0|1"
+        data-show-devpoint = "0|1"
 
-		<!-- barometer parameter -->
-		data-baro-show-value = "0|1"
-		data-baro-icon-opacity = "0-100"
-		data-baro-history = "2" <!-- hours back -->
-		data-get-pressure = "<Device>:<Reading>"
+        <!-- barometer parameter -->
+        data-baro-show-value = "0|1"
+        data-baro-icon-opacity = "0-100"
+        data-baro-history = "2" <!-- hours back -->
+        data-get-pressure = "<Device>:<Reading>"
 
-		<!-- anemometer parameter -->
-		data-get-wind-speed = "<Device>:<Reading>"
-		data-get-wind-direction = "<Device>:<Reading>"
-		data-wind-unit = "km/h"
+        <!-- anemometer parameter -->
+        data-get-wind-speed = "<Device>:<Reading>"
+        data-get-wind-direction = "<Device>:<Reading>"
+        data-wind-unit = "km/h"
 
-		<!-- clock parameter -->
-		data-clock-timezone = "0"
-		data-color-sec-pointer = "#000000"
+        <!-- clock parameter -->
+        data-clock-timezone = "0"
+        data-color-sec-pointer = "#000000"
 
     */
 
