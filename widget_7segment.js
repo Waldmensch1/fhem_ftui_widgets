@@ -19,6 +19,7 @@ var Modul_7segment = function () {
     ];
 
     function init() {
+        console.log("init")
         me.elements = $('div[data-type="' + me.widgetname + '"]', me.area);
         me.elements.each(function (index) {
 
@@ -27,6 +28,7 @@ var Modul_7segment = function () {
             var elem = $(this);
             items.push({ myID: uuidv4() })
             items[index].idx = index;
+            items[index].oldvalues={};
 
             elem.initData('color-fg', 'red');
             items[index].fgcolor = elem.data('color-fg');
@@ -69,8 +71,12 @@ var Modul_7segment = function () {
             var elem = $(this);
 
             if (elem.matchDeviceReading('get-value', device, reading)) {
-                setColor(index, elem.getReading('get-value').val);
-                setNumber(index, elem.getReading('get-value').val);
+                var value = elem.getReading('get-value').val
+                if(items[index].oldvalues['get-value'] !== value){
+                    setColor(index, value);
+                    setNumber(index, value);
+                    items[index].oldvalues['get-value'] = value;
+                }
             }
 
         });
@@ -246,10 +252,16 @@ var Modul_7segment = function () {
         });
     }
 
+    function init_ui(elem) {}
+
+    function init_attr(elem) {}
+
     var me = $.extend(new Modul_widget(), {
         widgetname: '7segment',
         init: init,
         update: update,
+        init_attr: init_attr,
+        init_ui: init_ui
     });
 
     return me;
