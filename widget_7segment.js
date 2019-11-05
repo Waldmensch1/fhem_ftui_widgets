@@ -28,7 +28,7 @@ var Modul_7segment = function () {
             var elem = $(this);
             items.push({ myID: uuidv4() })
             items[index].idx = index;
-            items[index].oldvalues={};
+            items[index].oldvalues = {};
 
             elem.initData('color-fg', 'red');
             items[index].fgcolor = elem.data('color-fg');
@@ -72,7 +72,7 @@ var Modul_7segment = function () {
 
             if (elem.matchDeviceReading('get-value', device, reading)) {
                 var value = elem.getReading('get-value').val
-                if(items[index].oldvalues['get-value'] !== value){
+                if (items[index].oldvalues['get-value'] !== value) {
                     setColor(index, value);
                     setNumber(index, value);
                     items[index].oldvalues['get-value'] = value;
@@ -252,9 +252,9 @@ var Modul_7segment = function () {
         });
     }
 
-    function init_ui(elem) {}
+    function init_ui(elem) { }
 
-    function init_attr(elem) {}
+    function init_attr(elem) { }
 
     var me = $.extend(new Modul_widget(), {
         widgetname: '7segment',
