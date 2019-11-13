@@ -38,9 +38,13 @@ var Modul_7segment = function () {
             items[index].bgcolor = elem.data('color-bg');
 
             elem.initData('view', '');
-            if (elem.data('view') == "clock4") {
-                items[index].clockmode = true;
+            if (elem.data('view') == "clock4" || elem.data('view') == "clockview4") {
+                items[index].clockmode = 4;
                 items[index].no_digits = 4;
+                items[index].decimals = 2;
+            } else if (elem.data('view') == "clock6" || elem.data('view') == "clockview6") {
+                items[index].clockmode = 6;
+                items[index].no_digits = 6;
                 items[index].decimals = 2;
             } else {
                 elem.initData('digits', '5');
@@ -74,13 +78,14 @@ var Modul_7segment = function () {
             createDigitArray(index);
             items[index].svgobj = createSVG(index, elem);
 
-            if (items[index].clockmode === true) {
+            if (items[index].clockmode > 0) {
                 items[index].clockinterval = setInterval(function clock() {
                     var d = new Date();
                     var timestring = "" + d.getHours() + d.getMinutes().toString().padStart(2, "0");
+                    timestring = items[index].clockmode === 6 ? timestring + d.getSeconds().toString().padStart(2, "0") : timestring;
                     setString(index, timestring);
                     return clock;
-                }(), 5000);
+                }(), 500);
             }
 
         });
@@ -128,7 +133,7 @@ var Modul_7segment = function () {
 
     function setDPColor(itm_index, color) {
         if ((items[itm_index].decimals == 1 && items[itm_index].no_digits >= 2) || (items[itm_index].decimals == 2 && items[itm_index].no_digits >= 3)) {
-            if (items[itm_index].clockmode === true) {
+            if (items[itm_index].clockmode === 4) {
                 var dp = items[itm_index].svgobj.getElementById("dp1");
                 dp.setAttribute("fill", color);
                 dp = items[itm_index].svgobj.getElementById("dp2");
@@ -214,8 +219,10 @@ var Modul_7segment = function () {
 
         var xmlns = "http://www.w3.org/2000/svg";
         var boxWidth;
-        if (items[index].clockmode === true) {
+        if (items[index].clockmode === 4) {
             boxWidth = (11 * items[index].no_digits) + 4;
+        } else if (items[index].clockmode === 6) {
+            boxWidth = (11 * items[index].no_digits) + 6;
         } else {
             boxWidth = (11 * items[index].no_digits) + 2;
         }
@@ -238,8 +245,10 @@ var Modul_7segment = function () {
         for (var i = 0; i < items[index].no_digits; i++) {
             var g = document.createElementNS(xmlns, "g");
 
-            if (items[index].clockmode === true && (i == 2 || i == 3)) {
+            if (items[index].clockmode > 0 && (i == 2 || i == 3)) {
                 g.setAttributeNS(null, "transform", "translate(" + ((boxWidth - ((i + 1) * 11)) - 2) + ",0) skewX(-5)");
+            } else if (items[index].clockmode === 6 && (i == 4 || i == 5)) {
+                g.setAttributeNS(null, "transform", "translate(" + ((boxWidth - ((i + 1) * 11)) - 4) + ",0) skewX(-5)");
             } else {
                 g.setAttributeNS(null, "transform", "translate(" + (boxWidth - ((i + 1) * 11)) + ",0) skewX(-5)");
             }
@@ -286,7 +295,7 @@ var Modul_7segment = function () {
             svgElem.appendChild(g);
         }
 
-        if (items[index].clockmode === true) {
+        if (items[index].clockmode === 4) {
             var c = document.createElementNS(xmlns, "circle");
             c.setAttributeNS(null, "r", "1");
             c.setAttributeNS(null, "cx", (boxWidth - (items[index].decimals * 11) - 2.6));
@@ -300,6 +309,35 @@ var Modul_7segment = function () {
             c.setAttributeNS(null, "cy", (boxHeight / 3));
             c.setAttributeNS(null, "fill", items[index].fgcolor);
             c.setAttributeNS(null, "id", "dp2");
+            svgElem.appendChild(c);
+        } else if (items[index].clockmode === 6) {
+            var c = document.createElementNS(xmlns, "circle");
+            c.setAttributeNS(null, "r", "1");
+            c.setAttributeNS(null, "cx", (boxWidth - (items[index].decimals * 11) - 2.6));
+            c.setAttributeNS(null, "cy", boxHeight - (boxHeight / 3));
+            c.setAttributeNS(null, "fill", items[index].fgcolor);
+            c.setAttributeNS(null, "id", "dp1");
+            svgElem.appendChild(c);
+            c = document.createElementNS(xmlns, "circle");
+            c.setAttributeNS(null, "r", "1");
+            c.setAttributeNS(null, "cx", (boxWidth - (items[index].decimals * 11) - 1.9));
+            c.setAttributeNS(null, "cy", (boxHeight / 3));
+            c.setAttributeNS(null, "fill", items[index].fgcolor);
+            c.setAttributeNS(null, "id", "dp2");
+            svgElem.appendChild(c);
+            var c = document.createElementNS(xmlns, "circle");
+            c.setAttributeNS(null, "r", "1");
+            c.setAttributeNS(null, "cx", (boxWidth - ((items[index].decimals + 2) * 11) - 4.6));
+            c.setAttributeNS(null, "cy", boxHeight - (boxHeight / 3));
+            c.setAttributeNS(null, "fill", items[index].fgcolor);
+            c.setAttributeNS(null, "id", "dp3");
+            svgElem.appendChild(c);
+            c = document.createElementNS(xmlns, "circle");
+            c.setAttributeNS(null, "r", "1");
+            c.setAttributeNS(null, "cx", (boxWidth - ((items[index].decimals + 2) * 11) - 3.9));
+            c.setAttributeNS(null, "cy", (boxHeight / 3));
+            c.setAttributeNS(null, "fill", items[index].fgcolor);
+            c.setAttributeNS(null, "id", "dp4");
             svgElem.appendChild(c);
         } else {
             if ((items[index].decimals == 1 && items[index].no_digits >= 2) || (items[index].decimals == 2 && items[index].no_digits >= 3)) {
