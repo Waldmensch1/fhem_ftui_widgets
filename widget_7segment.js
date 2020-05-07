@@ -132,7 +132,9 @@ var Modul_7segment = function () {
     }
 
     function setDPColor(itm_index, color) {
-        if ((items[itm_index].decimals == 1 && items[itm_index].no_digits >= 2) || (items[itm_index].decimals == 2 && items[itm_index].no_digits >= 3)) {
+        if ((items[itm_index].decimals == 1 && items[itm_index].no_digits >= 2) 
+        || (items[itm_index].decimals == 2 && items[itm_index].no_digits >= 3)
+        || (items[itm_index].decimals == 3 && items[itm_index].no_digits >= 4)) {
             if (items[itm_index].clockmode === 4) {
                 var dp = items[itm_index].svgobj.getElementById("dp1");
                 dp.setAttribute("fill", color);
@@ -187,7 +189,9 @@ var Modul_7segment = function () {
         var number = parseFloat(value)
         var isnegative = number < 0 ? true : false;
         number = isnegative ? number * -1 : number;
-        if (items[itm_index].decimals == 2) {
+        if (items[itm_index].decimals == 3) {
+            number = parseFloat(Math.round(number * 1000) / 1000).toFixed(3);
+        } else if (items[itm_index].decimals == 2) {
             number = parseFloat(Math.round(number * 100) / 100).toFixed(2);
         } else if (items[itm_index].decimals == 1) {
             number = parseFloat(Math.round(number * 10) / 10).toFixed(1);
@@ -340,7 +344,9 @@ var Modul_7segment = function () {
             c.setAttributeNS(null, "id", "dp4");
             svgElem.appendChild(c);
         } else {
-            if ((items[index].decimals == 1 && items[index].no_digits >= 2) || (items[index].decimals == 2 && items[index].no_digits >= 3)) {
+            if ((items[index].decimals == 1 && items[index].no_digits >= 2) 
+            || (items[index].decimals == 2 && items[index].no_digits >= 3)
+            || (items[index].decimals == 3 && items[index].no_digits >= 4)) {
                 var c = document.createElementNS(xmlns, "circle");
                 c.setAttributeNS(null, "r", "1");
                 c.setAttributeNS(null, "cx", (boxWidth - (items[index].decimals * 11) - 1.9));
