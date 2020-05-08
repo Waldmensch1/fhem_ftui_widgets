@@ -242,6 +242,7 @@ var Modul_7segment = function () {
         if(items[index].wide === true){
             var distancedigit = 13;
             var distancedecpoint = 2.9; 
+            boxWidth = (distancedigit * items[index].no_digits) + 2;
         }
 
         var svgElem = document.createElementNS(xmlns, "svg");
