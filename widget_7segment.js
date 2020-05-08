@@ -52,6 +52,9 @@ var Modul_7segment = function () {
                 elem.initData('decimals', '0');
                 items[index].decimals = elem.data('decimals');
 
+                elem.initData('wide', '0');
+                items[index].wide = elem.data('wide') == "1" ? true : false;
+
                 elem.initData('limits', '');
                 var limits = (elem.data('limits') != "") ? elem.data('limits') : []
 
@@ -233,6 +236,14 @@ var Modul_7segment = function () {
 
         var boxHeight = 18;
 
+        var distancedigit = 11;
+        var distancedecpoint = 1.9;
+
+        if(items[index].wide === true){
+            var distancedigit = 13;
+            var distancedecpoint = 2.9; 
+        }
+
         var svgElem = document.createElementNS(xmlns, "svg");
         svgElem.setAttributeNS(null, "viewBox", "0 0 " + boxWidth + " " + boxHeight);
         svgElem.setAttributeNS(null, "id", id);
@@ -254,7 +265,7 @@ var Modul_7segment = function () {
             } else if (items[index].clockmode === 6 && (i == 4 || i == 5)) {
                 g.setAttributeNS(null, "transform", "translate(" + ((boxWidth - ((i + 1) * 11)) - 4) + ",0) skewX(-5)");
             } else {
-                g.setAttributeNS(null, "transform", "translate(" + (boxWidth - ((i + 1) * 11)) + ",0) skewX(-5)");
+                g.setAttributeNS(null, "transform", "translate(" + (boxWidth - ((i + 1 ) * distancedigit)) + ",0) skewX(-5)");
             }
 
             g.setAttributeNS(null, "id", "digit" + i);
@@ -349,7 +360,7 @@ var Modul_7segment = function () {
             || (items[index].decimals == 3 && items[index].no_digits >= 4)) {
                 var c = document.createElementNS(xmlns, "circle");
                 c.setAttributeNS(null, "r", "1");
-                c.setAttributeNS(null, "cx", (boxWidth - (items[index].decimals * 11) - 1.9));
+                c.setAttributeNS(null, "cx", (boxWidth - (items[index].decimals * distancedigit) - distancedecpoint));
                 c.setAttributeNS(null, "cy", boxHeight - 1.1);
                 c.setAttributeNS(null, "fill", items[index].fgcolor);
                 c.setAttributeNS(null, "id", "dp1");

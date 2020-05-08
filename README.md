@@ -10,6 +10,7 @@ Example Definitons
 		data-get-value = "<Device>:<Reading>"
 		data-decimals ="1"
 		data-digits ="5"
+		data-wide = "1"
 		data-color-fg="limegreen"
 		class="top-space">
 	</div>
