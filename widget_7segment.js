@@ -28,41 +28,69 @@ var Modul_7segment = function () {
             var elem = $(this);
             items.push({ myID: uuidv4() })
             items[index].idx = index;
-            items[index].oldvalues={};
+            items[index].oldvalues = {};
+            items[index].limits = [];
+            items[index].limit_colors = [];
 
             elem.initData('color-fg', 'red');
-            items[index].fgcolor = elem.data('color-fg');
+            items[index].fgcolor = getFtuiColor(elem.data('color-fg'));
             elem.initData('color-bg', ftui.getStyle('.card', 'background-color') || '#2A2A2A');
             items[index].bgcolor = elem.data('color-bg');
-            elem.initData('digits', '5');
-            items[index].no_digits = elem.data('digits');
-            elem.initData('decimals', '0');
-            items[index].decimals = elem.data('decimals');
 
-            elem.initData('limits', '');
-            var limits = (elem.data('limits') != "") ? elem.data('limits') : []
-            items[index].limits = [];
-            limits.forEach(function (item) {
-                items[index].limits.push(parseFloat(item));
-            });
-            elem.initData('limit-colors', '');
-            items[index].limit_colors = (elem.data('limit-colors') != "") ? elem.data('limit-colors') : []
+            elem.initData('view', '');
+            if (elem.data('view') == "clock4" || elem.data('view') == "clockview4") {
+                items[index].clockmode = 4;
+                items[index].no_digits = 4;
+                items[index].decimals = 2;
+            } else if (elem.data('view') == "clock6" || elem.data('view') == "clockview6") {
+                items[index].clockmode = 6;
+                items[index].no_digits = 6;
+                items[index].decimals = 2;
+            } else {
+                elem.initData('digits', '5');
+                items[index].no_digits = elem.data('digits');
+                elem.initData('decimals', '0');
+                items[index].decimals = elem.data('decimals');
 
-            console.log(items[index].limits);
-            console.log(items[index].limit_colors);
+                elem.initData('wide', '0');
+                items[index].wide = elem.data('wide') == "1" ? true : false;
 
-            // if less colors than limits - fill colors with fg color
-            while (items[index].limit_colors.length < items[index].limits.length) {
-                items[index].limit_colors.push(items[index].fgcolor);
+                elem.initData('limits', '');
+                var limits = (elem.data('limits') != "") ? elem.data('limits') : []
+
+                limits.forEach(function (item) {
+                    items[index].limits.push(parseFloat(item));
+                });
+                elem.initData('limit-colors', '');
+                items[index].limit_colors = (elem.data('limit-colors') != "") ? elem.data('limit-colors') : []
+
+                console.log(items[index].limits);
+                console.log(items[index].limit_colors);
+
+                // if less colors than limits - fill colors with fg color
+                while (items[index].limit_colors.length < items[index].limits.length) {
+                    items[index].limit_colors.push(items[index].fgcolor);
+                }
+
+                // Device reading for value
+                if (elem.isDeviceReading('get-value')) {
+                    me.addReading(elem, 'get-value');
+                }
             }
 
             createDigitArray(index);
             items[index].svgobj = createSVG(index, elem);
 
-            // Device reading for value
-            if (elem.isDeviceReading('get-value')) {
-                me.addReading(elem, 'get-value');
+            if (items[index].clockmode > 0) {
+                items[index].clockinterval = setInterval(function clock() {
+                    var d = new Date();
+                    var timestring = "" + d.getHours() + d.getMinutes().toString().padStart(2, "0");
+                    timestring = items[index].clockmode === 6 ? timestring + d.getSeconds().toString().padStart(2, "0") : timestring;
+                    setString(index, timestring);
+                    return clock;
+                }(), 500);
             }
+
         });
     }
 
@@ -72,7 +100,7 @@ var Modul_7segment = function () {
 
             if (elem.matchDeviceReading('get-value', device, reading)) {
                 var value = elem.getReading('get-value').val
-                if(items[index].oldvalues['get-value'] !== value){
+                if (items[index].oldvalues['get-value'] !== value) {
                     setColor(index, value);
                     setNumber(index, value);
                     items[index].oldvalues['get-value'] = value;
@@ -82,21 +110,43 @@ var Modul_7segment = function () {
         });
     }
 
+    function getFtuiColor(color) {
+        return ftui.getStyle('.' + color, 'color') || color;
+    }
+
     function setColor(itm_index, value) {
         var _value = parseFloat(value);
         for (var i = items[itm_index].limits.length - 1; i > -1; i--) {
             if (_value >= items[itm_index].limits[i]) {
+                setDPColor(itm_index, getFtuiColor(items[itm_index].limit_colors[i]));
                 for (var j = 0; j < items[itm_index].no_digits; j++) {
                     var g = items[itm_index].svgobj.getElementById("digit" + j);
-                    g.setAttribute("fill", items[itm_index].limit_colors[i]);
+                    g.setAttribute("fill", getFtuiColor(items[itm_index].limit_colors[i]));
                 }
                 return;
             }
         }
         // no matches in limits
+        setDPColor(itm_index, items[itm_index].fgcolor);
         for (var j = 0; j < items[itm_index].no_digits; j++) {
             var g = items[itm_index].svgobj.getElementById("digit" + j);
-            g.setAttribute("fill", items[itm_index].fgcolor);
+            g.setAttribute("fill", getFtuiColor(items[itm_index].fgcolor));
+        }
+    }
+
+    function setDPColor(itm_index, color) {
+        if ((items[itm_index].decimals == 1 && items[itm_index].no_digits >= 2) 
+        || (items[itm_index].decimals == 2 && items[itm_index].no_digits >= 3)
+        || (items[itm_index].decimals == 3 && items[itm_index].no_digits >= 4)) {
+            if (items[itm_index].clockmode === 4) {
+                var dp = items[itm_index].svgobj.getElementById("dp1");
+                dp.setAttribute("fill", color);
+                dp = items[itm_index].svgobj.getElementById("dp2");
+                dp.setAttribute("fill", color);
+            } else {
+                var dp = items[itm_index].svgobj.getElementById("dp1");
+                dp.setAttribute("fill", color);
+            }
         }
     }
 
@@ -117,15 +167,34 @@ var Modul_7segment = function () {
         });
     }
 
+    function setString(itm_index, value) {
+        var numbers = [];
+        // fill with spaces
+        for (var i = 0; i < items[itm_index].no_digits; i++) {
+            numbers.push(-1);
+        }
+
+        // read value backwards into array
+        for (var i = 0; i < items[itm_index].no_digits && i < value.length; i++) {
+            numbers[i] = parseInt(value.charAt(value.length - 1 - i));
+        }
+
+        numbers.forEach(function (item, index) {
+            setDigit(itm_index, index, item);
+        });
+    }
+
     function setNumber(itm_index, value) {
-        var numbers = []
+        var numbers = [];
         for (var i = 0; i < items[itm_index].no_digits; i++) {
             numbers.push(-1);
         }
         var number = parseFloat(value)
         var isnegative = number < 0 ? true : false;
         number = isnegative ? number * -1 : number;
-        if (items[itm_index].decimals == 2) {
+        if (items[itm_index].decimals == 3) {
+            number = parseFloat(Math.round(number * 1000) / 1000).toFixed(3);
+        } else if (items[itm_index].decimals == 2) {
             number = parseFloat(Math.round(number * 100) / 100).toFixed(2);
         } else if (items[itm_index].decimals == 1) {
             number = parseFloat(Math.round(number * 10) / 10).toFixed(1);
@@ -153,11 +222,28 @@ var Modul_7segment = function () {
 
     function createSVG(index, elem) {
 
-        var id = items[index].myID
+        var id = items[index].myID;
 
         var xmlns = "http://www.w3.org/2000/svg";
-        var boxWidth = (11 * items[index].no_digits) + 2;
+        var boxWidth;
+        if (items[index].clockmode === 4) {
+            boxWidth = (11 * items[index].no_digits) + 4;
+        } else if (items[index].clockmode === 6) {
+            boxWidth = (11 * items[index].no_digits) + 6;
+        } else {
+            boxWidth = (11 * items[index].no_digits) + 2;
+        }
+
         var boxHeight = 18;
+
+        var distancedigit = 11;
+        var distancedecpoint = 1.9;
+
+        if(items[index].wide === true){
+            var distancedigit = 13;
+            var distancedecpoint = 2.9; 
+            boxWidth = (distancedigit * items[index].no_digits) + 2;
+        }
 
         var svgElem = document.createElementNS(xmlns, "svg");
         svgElem.setAttributeNS(null, "viewBox", "0 0 " + boxWidth + " " + boxHeight);
@@ -174,7 +260,15 @@ var Modul_7segment = function () {
 
         for (var i = 0; i < items[index].no_digits; i++) {
             var g = document.createElementNS(xmlns, "g");
-            g.setAttributeNS(null, "transform", "translate(" + (boxWidth - ((i + 1) * 11)) + ",0) skewX(-5)");
+
+            if (items[index].clockmode > 0 && (i == 2 || i == 3)) {
+                g.setAttributeNS(null, "transform", "translate(" + ((boxWidth - ((i + 1) * 11)) - 2) + ",0) skewX(-5)");
+            } else if (items[index].clockmode === 6 && (i == 4 || i == 5)) {
+                g.setAttributeNS(null, "transform", "translate(" + ((boxWidth - ((i + 1) * 11)) - 4) + ",0) skewX(-5)");
+            } else {
+                g.setAttributeNS(null, "transform", "translate(" + (boxWidth - ((i + 1 ) * distancedigit)) + ",0) skewX(-5)");
+            }
+
             g.setAttributeNS(null, "id", "digit" + i);
             g.setAttributeNS(null, "fill", items[index].fgcolor);
             g.setAttributeNS(null, "style", "fill-rule:evenodd; stroke:" + items[index].bgcolor + "; stroke-width:0.25; stroke-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;");
@@ -217,13 +311,62 @@ var Modul_7segment = function () {
             svgElem.appendChild(g);
         }
 
-        if ((items[index].decimals == 1 && items[index].no_digits >= 2) || (items[index].decimals == 2 && items[index].no_digits >= 3)) {
+        if (items[index].clockmode === 4) {
             var c = document.createElementNS(xmlns, "circle");
             c.setAttributeNS(null, "r", "1");
-            c.setAttributeNS(null, "cx", (boxWidth - (items[index].decimals * 11) - 1.9));
-            c.setAttributeNS(null, "cy", boxHeight - 1.1);
+            c.setAttributeNS(null, "cx", (boxWidth - (items[index].decimals * 11) - 2.6));
+            c.setAttributeNS(null, "cy", boxHeight - (boxHeight / 3));
             c.setAttributeNS(null, "fill", items[index].fgcolor);
+            c.setAttributeNS(null, "id", "dp1");
             svgElem.appendChild(c);
+            c = document.createElementNS(xmlns, "circle");
+            c.setAttributeNS(null, "r", "1");
+            c.setAttributeNS(null, "cx", (boxWidth - (items[index].decimals * 11) - 1.9));
+            c.setAttributeNS(null, "cy", (boxHeight / 3));
+            c.setAttributeNS(null, "fill", items[index].fgcolor);
+            c.setAttributeNS(null, "id", "dp2");
+            svgElem.appendChild(c);
+        } else if (items[index].clockmode === 6) {
+            var c = document.createElementNS(xmlns, "circle");
+            c.setAttributeNS(null, "r", "1");
+            c.setAttributeNS(null, "cx", (boxWidth - (items[index].decimals * 11) - 2.6));
+            c.setAttributeNS(null, "cy", boxHeight - (boxHeight / 3));
+            c.setAttributeNS(null, "fill", items[index].fgcolor);
+            c.setAttributeNS(null, "id", "dp1");
+            svgElem.appendChild(c);
+            c = document.createElementNS(xmlns, "circle");
+            c.setAttributeNS(null, "r", "1");
+            c.setAttributeNS(null, "cx", (boxWidth - (items[index].decimals * 11) - 1.9));
+            c.setAttributeNS(null, "cy", (boxHeight / 3));
+            c.setAttributeNS(null, "fill", items[index].fgcolor);
+            c.setAttributeNS(null, "id", "dp2");
+            svgElem.appendChild(c);
+            var c = document.createElementNS(xmlns, "circle");
+            c.setAttributeNS(null, "r", "1");
+            c.setAttributeNS(null, "cx", (boxWidth - ((items[index].decimals + 2) * 11) - 4.6));
+            c.setAttributeNS(null, "cy", boxHeight - (boxHeight / 3));
+            c.setAttributeNS(null, "fill", items[index].fgcolor);
+            c.setAttributeNS(null, "id", "dp3");
+            svgElem.appendChild(c);
+            c = document.createElementNS(xmlns, "circle");
+            c.setAttributeNS(null, "r", "1");
+            c.setAttributeNS(null, "cx", (boxWidth - ((items[index].decimals + 2) * 11) - 3.9));
+            c.setAttributeNS(null, "cy", (boxHeight / 3));
+            c.setAttributeNS(null, "fill", items[index].fgcolor);
+            c.setAttributeNS(null, "id", "dp4");
+            svgElem.appendChild(c);
+        } else {
+            if ((items[index].decimals == 1 && items[index].no_digits >= 2) 
+            || (items[index].decimals == 2 && items[index].no_digits >= 3)
+            || (items[index].decimals == 3 && items[index].no_digits >= 4)) {
+                var c = document.createElementNS(xmlns, "circle");
+                c.setAttributeNS(null, "r", "1");
+                c.setAttributeNS(null, "cx", (boxWidth - (items[index].decimals * distancedigit) - distancedecpoint));
+                c.setAttributeNS(null, "cy", boxHeight - 1.1);
+                c.setAttributeNS(null, "fill", items[index].fgcolor);
+                c.setAttributeNS(null, "id", "dp1");
+                svgElem.appendChild(c);
+            }
         }
 
         $(svgElem).appendTo(elem);
@@ -252,9 +395,9 @@ var Modul_7segment = function () {
         });
     }
 
-    function init_ui(elem) {}
+    function init_ui(elem) { }
 
-    function init_attr(elem) {}
+    function init_attr(elem) { }
 
     var me = $.extend(new Modul_widget(), {
         widgetname: '7segment',
